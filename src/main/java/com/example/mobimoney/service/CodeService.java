@@ -32,34 +32,31 @@ public class CodeService {
 
     @Transactional
     public String refillUserBalance(String code, Long userId) {
+        try {
+            Code foundCode = codeRepository.findByCode(code)
+                    .orElseThrow(() -> new IllegalArgumentException("No code!"));
 
-        Optional<Code> optionalCode = codeRepository.findByCode(code);
-        if (optionalCode.isEmpty()) {
-            return "No code!";
+            if (foundCode.isUsed()) {
+                throw new IllegalStateException("This code has already been used!");
+            }
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found!"));
+
+            int codeBalance = foundCode.getBalance();
+            user.setBalance(user.getBalance() + codeBalance);
+            userRepository.save(user);
+
+            foundCode.setUsed(true);
+            foundCode.setUsedBy(user);
+            foundCode.setUsedAt(LocalDateTime.now());
+            codeRepository.save(foundCode);
+
+            return "User balance updated successfully! New balance: " + user.getBalance();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to refill user balance", e);
+        } finally {
+            System.out.println("Refill user balance operation finished");
         }
-
-        Code foundCode = optionalCode.get();
-        int codeBalance = foundCode.getBalance();
-
-        if (foundCode.isUsed()) {
-            return "This code has already been used!";
-        }
-
-
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isEmpty()) {
-            return "User not found!";
-        }
-
-        User user = optionalUser.get();
-        user.setBalance(user.getBalance() + codeBalance);
-        userRepository.save(user);
-
-        foundCode.setUsed(true);
-        foundCode.setUsedBy(user);
-        foundCode.setUsedAt(LocalDateTime.now());
-        codeRepository.save(foundCode);
-
-        return "User balance updated successfully! New balance: " + user.getBalance();
     }
 }
