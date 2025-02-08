@@ -28,7 +28,6 @@ public class RefillController {
 
     @PostMapping("/refill")
     public ResponseEntity<String> refillUserBalance(@RequestParam("code") String code, @RequestParam("user") Long userId) {
-
         String response = codeService.refillUserBalance(code, userId);
         return ResponseEntity.ok(response);
     }
