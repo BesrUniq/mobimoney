@@ -47,6 +47,24 @@ public class CodeService {
             user.setBalance(user.getBalance() + codeBalance);
             userRepository.save(user);
 
+            /*
+                Пробни убрать @Transactional
+                и после сохранения пользователя, перед сохранением кода
+                вызвать любую рандомную ошибку.
+                Баланс начислиться, а код использован не будет
+                А потом пробни сделать тоже самое но уже с @Transactional
+
+                У меня есть кстати сомнение что все норм отработает
+                так как try...catch у нас внутри 'refillUserBalance'
+                поидее его стоит вынести наружу, в контроллер
+
+                https://struchkov.dev/blog/ru/transaction-jdbc-and-spring-boot/
+             */
+
+//            if (true) {
+//                throw new RuntimeException("например сдохла сеть и подключение к базе");
+//            }
+
             foundCode.setUsed(true);
             foundCode.setUsedBy(user);
             foundCode.setUsedAt(LocalDateTime.now());
